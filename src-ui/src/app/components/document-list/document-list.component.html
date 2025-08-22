@@ -68,6 +68,13 @@
     </div>
   </div>
 
+  <div class="btn-group flex-fill" role="group">
+    <div class="form-check form-switch mt-1">
+      <input class="form-check-input" type="checkbox" id="toggleIncludeDeepArchive" [checked]="list.includeDeepArchive" (change)="list.includeDeepArchive = $any($event.target).checked">
+      <label class="form-check-label" for="toggleIncludeDeepArchive" i18n>Include deep archive</label>
+    </div>
+  </div>
+
   <div class="btn-group flex-fill" *pngxIfPermissions="{ action: PermissionAction.View, type: PermissionType.SavedView }" ngbDropdown role="group">
     <button class="btn btn-sm btn-outline-primary dropdown-toggle flex-fill" tourAnchor="tour.documents-views" ngbDropdownToggle>
       <i-bs class="me-1" name="window-stack"></i-bs>

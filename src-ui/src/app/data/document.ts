@@ -159,6 +159,8 @@ export interface Document extends ObjectWithPermissions {
 
   page_count?: number
 
+  storage_class?: 'default' | 'deep_archive'
+
   // Frontend only
   __changedFields?: string[]
 }

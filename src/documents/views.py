@@ -587,13 +587,27 @@ class DocumentViewSet(
     )
 
     def get_queryset(self):
-        return (
+        queryset = (
             Document.objects.distinct()
             .order_by("-created")
             .annotate(num_notes=Count("notes"))
             .select_related("correspondent", "storage_path", "document_type", "owner")
             .prefetch_related("tags", "custom_fields", "notes")
         )
+
+        try:
+            include_deep_archive = get_boolean(
+                str(self.request.query_params.get("include_deep_archive", "false")),
+            )
+        except Exception:
+            include_deep_archive = False
+
+        if not include_deep_archive:
+            queryset = queryset.exclude(
+                storage_class=Document.STORAGE_CLASS_DEEP_ARCHIVE,
+            )
+
+        return queryset
 
     def get_serializer(self, *args, **kwargs):
         fields_param = self.request.query_params.get("fields", None)
@@ -1105,6 +1119,12 @@ class DocumentViewSet(
                 type=OpenApiTypes.STR,
                 location=OpenApiParameter.QUERY,
                 description="Advanced search query string",
+            ),
+            OpenApiParameter(
+                name="include_deep_archive",
+                type=OpenApiTypes.BOOL,
+                location=OpenApiParameter.QUERY,
+                description="If true, include documents with storage_class=deep_archive",
             ),
             OpenApiParameter(
                 name="full_perms",

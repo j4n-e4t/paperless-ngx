@@ -79,6 +79,9 @@ export interface ListViewState {
    * The fields to display in the document list.
    */
   displayFields?: DisplayField[]
+
+  /** If true, include deep-archive documents in results */
+  includeDeepArchive?: boolean
 }
 
 /**
@@ -165,6 +168,7 @@ export class DocumentListViewService {
       sortReverse: true,
       filterRules: [],
       selected: new Set<number>(),
+      includeDeepArchive: false,
     }
   }
 
@@ -244,6 +248,8 @@ export class DocumentListViewService {
       this.activeListViewState.sortField = newState.sortField
       this.activeListViewState.sortReverse = newState.sortReverse
       this.activeListViewState.currentPage = newState.currentPage
+      this.activeListViewState.includeDeepArchive =
+        newState.includeDeepArchive ?? false
       this.reload(null, paramsEmpty) // update the params if there aren't any
     }
   }
@@ -260,7 +266,10 @@ export class DocumentListViewService {
         activeListViewState.sortField,
         activeListViewState.sortReverse,
         activeListViewState.filterRules,
-        { truncate_content: true }
+        {
+          truncate_content: true,
+          include_deep_archive: this.includeDeepArchive ? 1 : 0,
+        }
       )
       .pipe(takeUntil(this.unsubscribeNotifier))
       .subscribe({
@@ -444,6 +453,16 @@ export class DocumentListViewService {
     )
   }
 
+  set includeDeepArchive(include: boolean) {
+    this.activeListViewState.includeDeepArchive = include
+    this.reload()
+    this.saveDocumentListView()
+  }
+
+  get includeDeepArchive(): boolean {
+    return this.activeListViewState.includeDeepArchive ?? false
+  }
+
   get displayFields(): DisplayField[] {
     return this.activeListViewState.displayFields ?? LIST_DEFAULT_DISPLAY_FIELDS
   }
@@ -559,7 +578,9 @@ export class DocumentListViewService {
   reduceSelectionToFilter() {
     if (this.selected.size > 0) {
       this.documentService
-        .listAllFilteredIds(this.filterRules)
+        .listAllFilteredIds(this.filterRules, {
+          include_deep_archive: this.includeDeepArchive ? 1 : 0,
+        })
         .subscribe((ids) => {
           for (let id of this.selected) {
             if (!ids.includes(id)) {
@@ -572,7 +593,9 @@ export class DocumentListViewService {
 
   selectAll() {
     this.documentService
-      .listAllFilteredIds(this.filterRules)
+      .listAllFilteredIds(this.filterRules, {
+        include_deep_archive: this.includeDeepArchive ? 1 : 0,
+      })
       .subscribe((ids) => ids.forEach((id) => this.selected.add(id)))
   }
 
