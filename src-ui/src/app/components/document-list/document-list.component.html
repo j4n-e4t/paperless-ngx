@@ -68,10 +68,14 @@
     </div>
   </div>
 
-  <div class="btn-group flex-fill" role="group">
-    <div class="form-check form-switch mt-1">
-      <input class="form-check-input" type="checkbox" id="toggleIncludeDeepArchive" [checked]="list.includeDeepArchive" (change)="list.includeDeepArchive = $any($event.target).checked">
-      <label class="form-check-label" for="toggleIncludeDeepArchive" i18n>Include deep archive</label>
+  <div ngbDropdown class="btn-group flex-fill">
+    <button class="btn btn-sm" [ngClass]="list.includeDeepArchive ? 'btn-primary' : 'btn-outline-primary'" id="dropdownDeepArchive" ngbDropdownToggle>
+      <i-bs name="hdd-stack"></i-bs>
+      <div class="d-none d-sm-inline">&nbsp;<ng-container i18n>Deep archive</ng-container></div>
+    </button>
+    <div ngbDropdownMenu aria-labelledby="dropdownDeepArchive" class="shadow dropdown-menu-right">
+      <button ngbDropdownItem (click)="list.includeDeepArchive = true" [class.active]="list.includeDeepArchive" i18n>Include deep archive</button>
+      <button ngbDropdownItem (click)="list.includeDeepArchive = false" [class.active]="!list.includeDeepArchive" i18n>Exclude deep archive</button>
     </div>
   </div>
 
