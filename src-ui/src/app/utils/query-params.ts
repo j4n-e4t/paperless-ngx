@@ -17,6 +17,7 @@ import { ListViewState } from '../services/document-list-view.service'
 const SORT_FIELD_PARAMETER = 'sort'
 const SORT_REVERSE_PARAMETER = 'reverse'
 const PAGE_PARAMETER = 'page'
+const INCLUDE_DEEP_ARCHIVE_PARAMETER = 'include_deep_archive'
 
 export function paramsFromViewState(
   viewState: ListViewState,
@@ -30,6 +31,9 @@ export function paramsFromViewState(
     ? 1
     : viewState.currentPage
   if (pageOnly && viewState.currentPage == 1) params[PAGE_PARAMETER] = undefined
+  params[INCLUDE_DEEP_ARCHIVE_PARAMETER] = viewState.includeDeepArchive
+    ? 1
+    : undefined
   return params
 }
 
@@ -43,11 +47,15 @@ export function paramsToViewState(queryParams: ParamMap): ListViewState {
   let currentPage = queryParams.has(PAGE_PARAMETER)
     ? parseInt(queryParams.get(PAGE_PARAMETER))
     : 1
+  const includeDeepArchive = queryParams.has(INCLUDE_DEEP_ARCHIVE_PARAMETER)
+    ? queryParams.get(INCLUDE_DEEP_ARCHIVE_PARAMETER) == '1'
+    : false
   return {
     currentPage: currentPage,
     filterRules: filterRules,
     sortField: sortField,
     sortReverse: sortReverse,
+    includeDeepArchive: includeDeepArchive,
   }
 }
 

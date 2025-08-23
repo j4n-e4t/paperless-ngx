@@ -228,6 +228,11 @@ export class DocumentDetailComponent
   documentTypes: DocumentType[]
   storagePaths: StoragePath[]
 
+  storageClasses = [
+    { id: 'default', name: $localize`Default` },
+    { id: 'deep_archive', name: $localize`Deep archive` },
+  ]
+
   documentForm: FormGroup = new FormGroup({
     title: new FormControl(''),
     content: new FormControl(''),
@@ -235,6 +240,7 @@ export class DocumentDetailComponent
     correspondent: new FormControl(),
     document_type: new FormControl(),
     storage_path: new FormControl(),
+    storage_class: new FormControl(),
     archive_serial_number: new FormControl(),
     tags: new FormControl([]),
     permissions_form: new FormControl(null),
@@ -510,6 +516,7 @@ export class DocumentDetailComponent
             correspondent: doc.correspondent,
             document_type: doc.document_type,
             storage_path: doc.storage_path,
+            storage_class: doc.storage_class,
             archive_serial_number: doc.archive_serial_number,
             tags: [...doc.tags],
             permissions_form: {

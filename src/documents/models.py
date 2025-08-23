@@ -137,6 +137,13 @@ class Document(SoftDeleteModel, ModelWithOwner):
         (STORAGE_TYPE_GPG, _("Encrypted with GNU Privacy Guard")),
     )
 
+    STORAGE_CLASS_DEFAULT = "default"
+    STORAGE_CLASS_DEEP_ARCHIVE = "deep_archive"
+    STORAGE_CLASS_CHOICES = (
+        (STORAGE_CLASS_DEFAULT, _("Default")),
+        (STORAGE_CLASS_DEEP_ARCHIVE, _("Deep archive")),
+    )
+
     correspondent = models.ForeignKey(
         Correspondent,
         blank=True,
@@ -232,6 +239,14 @@ class Document(SoftDeleteModel, ModelWithOwner):
         choices=STORAGE_TYPES,
         default=STORAGE_TYPE_UNENCRYPTED,
         editable=False,
+    )
+
+    storage_class = models.CharField(
+        _("storage class"),
+        max_length=12,
+        choices=STORAGE_CLASS_CHOICES,
+        default=STORAGE_CLASS_DEFAULT,
+        db_index=True,
     )
 
     added = models.DateTimeField(

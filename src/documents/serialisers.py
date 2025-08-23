@@ -1082,6 +1082,7 @@ class DocumentSerializer(
             "correspondent",
             "document_type",
             "storage_path",
+            "storage_class",
             "title",
             "content",
             "tags",

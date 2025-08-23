@@ -587,13 +587,27 @@ class DocumentViewSet(
     )
 
     def get_queryset(self):
-        return (
+        queryset = (
             Document.objects.distinct()
             .order_by("-created")
             .annotate(num_notes=Count("notes"))
             .select_related("correspondent", "storage_path", "document_type", "owner")
             .prefetch_related("tags", "custom_fields", "notes")
         )
+
+        try:
+            include_deep_archive = get_boolean(
+                str(self.request.query_params.get("include_deep_archive", "false")),
+            )
+        except Exception:
+            include_deep_archive = False
+
+        if not include_deep_archive:
+            queryset = queryset.exclude(
+                storage_class=Document.STORAGE_CLASS_DEEP_ARCHIVE,
+            )
+
+        return queryset
 
     def get_serializer(self, *args, **kwargs):
         fields_param = self.request.query_params.get("fields", None)
@@ -1107,6 +1121,12 @@ class DocumentViewSet(
                 description="Advanced search query string",
             ),
             OpenApiParameter(
+                name="include_deep_archive",
+                type=OpenApiTypes.BOOL,
+                location=OpenApiParameter.QUERY,
+                description="If true, include documents with storage_class=deep_archive",
+            ),
+            OpenApiParameter(
                 name="full_perms",
                 type=OpenApiTypes.BOOL,
                 location=OpenApiParameter.QUERY,
@@ -1130,6 +1150,50 @@ class DocumentViewSet(
     ),
 )
 class UnifiedSearchViewSet(DocumentViewSet):
+    def get_queryset(self):
+        """
+        Override get_queryset to handle deep archive documents for search.
+        For search queries, we want the filter queryset to include deep archive
+        documents when the toggle is on, so they can be found in search results.
+        """
+        queryset = (
+            Document.objects.distinct()
+            .order_by("-created")
+            .annotate(num_notes=Count("notes"))
+            .select_related("correspondent", "storage_path", "document_type", "owner")
+            .prefetch_related("tags", "custom_fields", "notes")
+        )
+
+        # For search requests, we need to handle the include_deep_archive parameter
+        # differently than for regular document listing
+        if self._is_search_request():
+            try:
+                include_deep_archive = get_boolean(
+                    str(self.request.query_params.get("include_deep_archive", "false")),
+                )
+            except Exception:
+                include_deep_archive = False
+
+            # For search, we don't exclude deep archive documents by default
+            # The search index contains all documents, and we let the search
+            # engine decide which ones to return based on permissions and other filters
+            return queryset
+        else:
+            # For non-search requests (like regular document listing), use the parent behavior
+            try:
+                include_deep_archive = get_boolean(
+                    str(self.request.query_params.get("include_deep_archive", "false")),
+                )
+            except Exception:
+                include_deep_archive = False
+
+            if not include_deep_archive:
+                queryset = queryset.exclude(
+                    storage_class=Document.STORAGE_CLASS_DEEP_ARCHIVE,
+                )
+
+            return queryset
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.searcher = None

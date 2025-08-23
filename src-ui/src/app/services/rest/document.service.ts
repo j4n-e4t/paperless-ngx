@@ -149,16 +149,25 @@ export class DocumentService extends AbstractPaperlessService<Document> {
     )
   }
 
-  listAllFilteredIds(filterRules?: FilterRule[]): Observable<number[]> {
-    return this.listFiltered(1, 100000, null, null, filterRules, {
-      fields: 'id',
-    }).pipe(map((response) => response.results.map((doc) => doc.id)))
+  listAllFilteredIds(
+    filterRules?: FilterRule[],
+    extraParams: any = {}
+  ): Observable<number[]> {
+    return this.listFiltered(
+      1,
+      100000,
+      null,
+      null,
+      filterRules,
+      Object.assign({ fields: 'id' }, extraParams)
+    ).pipe(map((response) => response.results.map((doc) => doc.id)))
   }
 
   get(id: number): Observable<Document> {
     return this.http.get<Document>(this.getResourceUrl(id), {
       params: {
         full_perms: true,
+        include_deep_archive: 1 as any,
       },
     })
   }
@@ -192,7 +201,11 @@ export class DocumentService extends AbstractPaperlessService<Document> {
     o.remove_inbox_tags = !!this.settingsService.get(
       SETTINGS_KEYS.DOCUMENT_EDITING_REMOVE_INBOX_TAGS
     )
-    return super.patch(o)
+    return this.http.patch<Document>(this.getResourceUrl(o.id), o, {
+      params: {
+        include_deep_archive: 1 as any,
+      },
+    })
   }
 
   uploadDocument(formData) {
